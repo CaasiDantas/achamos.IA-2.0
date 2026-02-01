@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Controle | Live</title>
+  <title>Painel Live | Gestão Premium</title>
   <link rel="stylesheet" href="painel.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
   <main class="dashboard">
     <header class="header">
       <div>
-        <h2>Monitoramento em Tempo Real</h2>
-        <p id="counter">Sincronizando com o servidor...</p>
+        <h2>Painel de Monitoramento</h2>
+        <p id="counter">Sincronização ativa (3s)</p>
       </div>
       <div class="live-indicator">
         <span class="dot"></span> LIVE
@@ -29,7 +29,7 @@
       if (!confirm(`Encerrar monitoramento de ${email}?`)) return;
 
       try {
-        const res = await fetch('/api/location', {
+        const res = await fetch('/api/location', { // Ajuste a URL se necessário
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email })
@@ -37,10 +37,12 @@
 
         if (res.ok) {
           const idLimpo = email.replace(/[^a-z0-9]/gi, '');
-          document.getElementById(`card-${idLimpo}`)?.remove();
+          const card = document.getElementById(`card-${idLimpo}`);
+          if (card) card.style.opacity = '0'; // Feedback visual suave
+          setTimeout(() => card?.remove(), 300);
         }
       } catch (e) {
-        console.error("Erro ao remover:", e);
+        alert("Erro ao conectar com o servidor.");
       }
     }
 
@@ -50,21 +52,21 @@
         const data = await res.json();
         const grid = document.getElementById('grid-localizacoes');
         
-        // Remove cards da tela que não estão mais no servidor
-        const emailsNoServidor = Object.keys(data);
+        const emailsServidor = Object.keys(data);
+
+        // Limpa cards que foram removidos no servidor por outros admins
         document.querySelectorAll('.location-card').forEach(card => {
-          const emailCard = card.getAttribute('data-email');
-          if (!emailsNoServidor.includes(emailCard)) {
+          if (!emailsServidor.includes(card.getAttribute('data-email'))) {
             card.remove();
           }
         });
 
-        emailsNoServidor.forEach(email => {
+        emailsServidor.forEach(email => {
           const loc = data[email];
           const idLimpo = email.replace(/[^a-z0-9]/gi, '');
           let card = document.getElementById(`card-${idLimpo}`);
 
-          // Se o card não existe, cria. Se existe, apenas atualiza (Evita piscar)
+          // Se não existe o card, cria. Se existe, apenas atualiza o texto interno.
           if (!card) {
             card = document.createElement('div');
             card.id = `card-${idLimpo}`;
@@ -73,30 +75,27 @@
             grid.appendChild(card);
           }
 
+          // Atualiza apenas o conteúdo (evita o piscar)
           card.innerHTML = `
-            <button class="delete-btn" onclick="removerUsuario('${email}')" title="Remover">&times;</button>
+            <button class="delete-btn" onclick="removerUsuario('${email}')">&times;</button>
             <div class="card-header">
               <div class="user-avatar">${email.charAt(0).toUpperCase()}</div>
               <div class="user-info">
                 <strong title="${email}">${email}</strong>
-                <span>Ativo agora</span>
+                <span>Localização Ativa</span>
               </div>
             </div>
             <div class="card-body">
-              <p class="timestamp">
-                Último sinal: ${new Date(loc.date).toLocaleTimeString()}
-              </p>
-              <div class="coords">
-                ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}
-              </div>
+              <p class="timestamp">Visto em: ${new Date(loc.date).toLocaleTimeString()}</p>
+              <div class="coords">${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}</div>
             </div>
             <a class="map-btn" target="_blank" href="https://www.google.com/maps?q=${loc.lat},${loc.lng}">
-              Abrir no Maps
+              Ver no Google Maps
             </a>
           `;
         });
       } catch (e) {
-        console.error("Erro na atualização:", e);
+        console.error("Erro na atualização automática.");
       }
     }
 
