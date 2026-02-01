@@ -2,56 +2,93 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Compartilhar Localização</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Localização em Tempo Real | Premium</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h2>Compartilhar localização</h2>
 
-  <input
-    type="email"
-    id="email"
-    placeholder="Digite seu e-mail"
-    required
-  />
-  <br><br>
+  <div class="container">
+    <h2>Localização</h2>
+    <p>Compartilhe sua posição em tempo real de forma segura e criptografada.</p>
 
-  <button onclick="iniciar()">Iniciar</button>
+    <input 
+      type="email" 
+      id="email" 
+      placeholder="nome@exemplo.com" 
+      required
+    />
 
-  <p id="status"></p>
+    <button id="btn-iniciar" onclick="handleIniciar()">Ativar Compartilhamento</button>
+
+    <p id="status"></p>
+  </div>
 
   <script>
     let watchId = null;
 
-    function iniciar() {
+    function handleIniciar() {
       const email = document.getElementById('email').value;
-      if (!email) {
-        alert('Digite um e-mail válido');
+      const statusEl = document.getElementById('status');
+      const btn = document.getElementById('btn-iniciar');
+
+      // Validação ética e profissional
+      if (!email || !email.includes('@')) {
+        statusEl.innerText = 'Por favor, insira um e-mail válido.';
+        statusEl.className = 'error';
         return;
       }
 
-      document.getElementById('status').innerText =
-        '📡 Compartilhando localização em tempo real...';
+      // Feedback visual imediato
+      statusEl.innerText = 'Solicitando acesso...';
+      statusEl.className = '';
+      btn.innerText = 'Conectando...';
+      btn.disabled = true;
+      btn.style.opacity = "0.7";
+      btn.style.cursor = "not-allowed";
 
       watchId = navigator.geolocation.watchPosition(
         position => {
+          // Estado de Sucesso
+          statusEl.innerText = '📡 Transmissão ativa em tempo real';
+          statusEl.className = 'active';
+          btn.innerText = 'Compartilhando';
+
+          const data = {
+            email: email,
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            timestamp: new Date().toISOString()
+          };
+
+          // Envio para API
           fetch('/api/location', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: email,
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            })
-          });
+            body: JSON.stringify(data)
+          }).catch(err => console.error('Erro de conexão:', err));
+          
+          console.log('Posição atualizada:', data.lat, data.lng);
         },
         error => {
-          document.getElementById('status').innerText =
-            'Permissão de localização negada';
+          // Tratamento de erro elegante
+          btn.disabled = false;
+          btn.style.opacity = "1";
+          btn.style.cursor = "pointer";
+          btn.innerText = 'Tentar Novamente';
+          
+          statusEl.className = 'error';
+          if (error.code === 1) {
+            statusEl.innerText = 'Acesso negado. Ative a localização no navegador.';
+          } else {
+            statusEl.innerText = 'Erro ao obter localização. Tente novamente.';
+          }
         },
         {
           enableHighAccuracy: true,
           maximumAge: 0,
-          timeout: 5000
+          timeout: 10000
         }
       );
     }

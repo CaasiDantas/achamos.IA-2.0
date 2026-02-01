@@ -2,40 +2,72 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Painel de Localização</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitoramento Premium | Live Tracking</title>
+  <link rel="stylesheet" href="painel.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h2>Localizações em tempo real</h2>
 
-  <ul id="lista"></ul>
+  <main class="dashboard">
+    <header class="header">
+      <div>
+        <h2>Painel de Controle</h2>
+        <p id="counter">Sincronizando dados em tempo real...</p>
+      </div>
+      <div class="live-indicator">
+        <span class="dot"></span> LIVE
+      </div>
+    </header>
+
+    <div id="grid-localizacoes" class="location-grid">
+      </div>
+  </main>
 
   <script>
     async function atualizar() {
-      const res = await fetch('/api/location');
-      const data = await res.json();
+      try {
+        const res = await fetch('/api/location');
+        const data = await res.json();
+        const grid = document.getElementById('grid-localizacoes');
+        
+        grid.innerHTML = '';
 
-      const ul = document.getElementById('lista');
-      ul.innerHTML = '';
-
-      Object.keys(data).forEach(email => {
-        const loc = data[email];
-
-        const li = document.createElement('li');
-        li.innerHTML = `
-          <strong>${email}</strong><br>
-          Última atualização: ${new Date(loc.date).toLocaleString()}<br>
-          <a target="_blank"
-             href="https://www.google.com/maps?q=${loc.lat},${loc.lng}">
-             Ver no mapa
-          </a>
-          <hr>
-        `;
-
-        ul.appendChild(li);
-      });
+        Object.keys(data).forEach(email => {
+          const loc = data[email];
+          const card = document.createElement('div');
+          card.className = 'location-card';
+          
+          card.innerHTML = `
+            <div class="card-header">
+              <div class="user-avatar">${email.charAt(0).toUpperCase()}</div>
+              <div class="user-info">
+                <strong>${email}</strong>
+                <span>Ativo agora</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <p class="timestamp">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                ${new Date(loc.date).toLocaleTimeString()}
+              </p>
+              <div class="coords">
+                ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}
+              </div>
+            </div>
+            <a class="map-btn" target="_blank" href="https://www.google.com/maps?q=${loc.lat},${loc.lng}">
+              Visualizar Trajeto
+            </a>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (e) {
+        console.error("Erro ao sincronizar:", e);
+      }
     }
 
-    setInterval(atualizar, 3000); // atualiza a cada 3 segundos
+    setInterval(atualizar, 3000);
+    atualizar();
   </script>
 </body>
 </html>

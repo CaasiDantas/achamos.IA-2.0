@@ -1,0 +1,168 @@
+/* ================= ESTRUTURA E REFINAMENTO ================= */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased; /* Renderização de fonte premium */
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  /* Paleta Profissional e Sóbria */
+  --bg-primary: #0f172a;
+  --primary: #6366f1;
+  --primary-glow: rgba(99, 102, 241, 0.5);
+  --accent: #8b5cf6;
+  --success: #10b981;
+  --danger: #ef4444;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  
+  /* Glassmorphism Refinado */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --blur-intensity: 20px;
+}
+
+/* ================= CORPO (ATMOSFERA) ================= */
+body {
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  /* Gradiente sutil que não cansa a vista */
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+/* ================= CONTAINER (O CARD) ================= */
+.container {
+  width: 100%;
+  max-width: 440px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--blur-intensity));
+  -webkit-backdrop-filter: blur(var(--blur-intensity));
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 48px 40px;
+  /* Sombras em camadas para profundidade realista */
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 20px 25px -5px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  animation: fadeInBlur 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ================= TIPOGRAFIA ================= */
+.container h2 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: -0.025em;
+  background: linear-gradient(to bottom right, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.container p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 32px;
+}
+
+/* ================= INPUTS ================= */
+.container input[type="email"] {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  background: rgba(15, 23, 42, 0.6);
+  color: white;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.container input::placeholder {
+  color: #475569;
+}
+
+.container input:focus {
+  border-color: var(--primary);
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 4px var(--primary-glow);
+}
+
+/* ================= BOTÃO (HIGH-END) ================= */
+.container button {
+  width: 100%;
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  background: #fff; /* Design Minimalista: Botão branco em fundo escuro */
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.container button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  background: #f1f5f9;
+}
+
+.container button:active {
+  transform: translateY(0);
+}
+
+/* ================= STATUS ÉTICO ================= */
+#status {
+  margin-top: 24px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  opacity: 0.9;
+}
+
+#status.active { color: var(--success); }
+#status.error { color: var(--danger); }
+
+/* ================= ANIMAÇÕES REFINADAS ================= */
+@keyframes fadeInBlur {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Design Responsivo */
+@media (max-width: 480px) {
+  .container {
+    padding: 40px 24px;
+    border-radius: 0; /* Full screen mobile feeling */
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+}
