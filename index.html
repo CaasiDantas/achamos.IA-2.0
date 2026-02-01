@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Compartilhar Localização</title>
+</head>
+<body>
+  <h2>Compartilhar localização</h2>
+
+  <input
+    type="email"
+    id="email"
+    placeholder="Digite seu e-mail"
+    required
+  />
+  <br><br>
+
+  <button onclick="iniciar()">Iniciar</button>
+
+  <p id="status"></p>
+
+  <script>
+    let watchId = null;
+
+    function iniciar() {
+      const email = document.getElementById('email').value;
+      if (!email) {
+        alert('Digite um e-mail válido');
+        return;
+      }
+
+      document.getElementById('status').innerText =
+        '📡 Compartilhando localização em tempo real...';
+
+      watchId = navigator.geolocation.watchPosition(
+        position => {
+          fetch('/api/location', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: email,
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            })
+          });
+        },
+        error => {
+          document.getElementById('status').innerText =
+            'Permissão de localização negada';
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: 5000
+        }
+      );
+    }
+  </script>
+</body>
+</html>

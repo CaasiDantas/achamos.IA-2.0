@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel de Localização</title>
+</head>
+<body>
+  <h2>Localizações em tempo real</h2>
+
+  <ul id="lista"></ul>
+
+  <script>
+    async function atualizar() {
+      const res = await fetch('/api/location');
+      const data = await res.json();
+
+      const ul = document.getElementById('lista');
+      ul.innerHTML = '';
+
+      Object.keys(data).forEach(email => {
+        const loc = data[email];
+
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>${email}</strong><br>
+          Última atualização: ${new Date(loc.date).toLocaleString()}<br>
+          <a target="_blank"
+             href="https://www.google.com/maps?q=${loc.lat},${loc.lng}">
+             Ver no mapa
+          </a>
+          <hr>
+        `;
+
+        ul.appendChild(li);
+      });
+    }
+
+    setInterval(atualizar, 3000); // atualiza a cada 3 segundos
+  </script>
+</body>
+</html>
