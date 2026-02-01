@@ -67,13 +67,11 @@ body {
 }
 
 .location-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 16px;
-  padding: 24px;
-  transition: all 0.3s ease;
-  animation: fadeIn 0.5s ease forwards;
+  /* Garante que o card lide com conteúdos internos */
+  overflow: hidden; 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .location-card:hover {
@@ -101,7 +99,14 @@ body {
   color: white;
 }
 
-.user-info strong { display: block; font-size: 1rem; }
+.user-info strong {
+  display: block;
+  font-size: 0.95rem;
+  white-space: nowrap;      /* Não deixa quebrar linha */
+  overflow: hidden;         /* Esconde o que sobrar */
+  text-overflow: ellipsis;  /* Adiciona "..." no final do e-mail longo */
+  max-width: 180px;         /* Ajuste conforme o tamanho do seu card */
+}
 .user-info span { font-size: 0.75rem; color: var(--accent); }
 
 .card-body { margin-bottom: 20px; }
