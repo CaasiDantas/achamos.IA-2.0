@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monitoramento Premium | Live Tracking</title>
+  <title>Painel de Controle | Live</title>
   <link rel="stylesheet" href="painel.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -12,8 +12,8 @@
   <main class="dashboard">
     <header class="header">
       <div>
-        <h2>Painel de Controle</h2>
-        <p id="counter">Sincronizando dados em tempo real...</p>
+        <h2>Monitoramento em Tempo Real</h2>
+        <p id="counter">Sincronizando com o servidor...</p>
       </div>
       <div class="live-indicator">
         <span class="dot"></span> LIVE
@@ -25,44 +25,78 @@
   </main>
 
   <script>
+    async function removerUsuario(email) {
+      if (!confirm(`Encerrar monitoramento de ${email}?`)) return;
+
+      try {
+        const res = await fetch('/api/location', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        });
+
+        if (res.ok) {
+          const idLimpo = email.replace(/[^a-z0-9]/gi, '');
+          document.getElementById(`card-${idLimpo}`)?.remove();
+        }
+      } catch (e) {
+        console.error("Erro ao remover:", e);
+      }
+    }
+
     async function atualizar() {
       try {
         const res = await fetch('/api/location');
         const data = await res.json();
         const grid = document.getElementById('grid-localizacoes');
         
-        grid.innerHTML = '';
+        // Remove cards da tela que não estão mais no servidor
+        const emailsNoServidor = Object.keys(data);
+        document.querySelectorAll('.location-card').forEach(card => {
+          const emailCard = card.getAttribute('data-email');
+          if (!emailsNoServidor.includes(emailCard)) {
+            card.remove();
+          }
+        });
 
-        Object.keys(data).forEach(email => {
+        emailsNoServidor.forEach(email => {
           const loc = data[email];
-          const card = document.createElement('div');
-          card.className = 'location-card';
-          
+          const idLimpo = email.replace(/[^a-z0-9]/gi, '');
+          let card = document.getElementById(`card-${idLimpo}`);
+
+          // Se o card não existe, cria. Se existe, apenas atualiza (Evita piscar)
+          if (!card) {
+            card = document.createElement('div');
+            card.id = `card-${idLimpo}`;
+            card.className = 'location-card';
+            card.setAttribute('data-email', email);
+            grid.appendChild(card);
+          }
+
           card.innerHTML = `
+            <button class="delete-btn" onclick="removerUsuario('${email}')" title="Remover">&times;</button>
             <div class="card-header">
               <div class="user-avatar">${email.charAt(0).toUpperCase()}</div>
               <div class="user-info">
-                <strong>${email}</strong>
+                <strong title="${email}">${email}</strong>
                 <span>Ativo agora</span>
               </div>
             </div>
             <div class="card-body">
               <p class="timestamp">
-                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                ${new Date(loc.date).toLocaleTimeString()}
+                Último sinal: ${new Date(loc.date).toLocaleTimeString()}
               </p>
               <div class="coords">
-                ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}
+                ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}
               </div>
             </div>
             <a class="map-btn" target="_blank" href="https://www.google.com/maps?q=${loc.lat},${loc.lng}">
-              Visualizar Trajeto
+              Abrir no Maps
             </a>
           `;
-          grid.appendChild(card);
         });
       } catch (e) {
-        console.error("Erro ao sincronizar:", e);
+        console.error("Erro na atualização:", e);
       }
     }
 
