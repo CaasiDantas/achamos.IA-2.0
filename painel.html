@@ -15,8 +15,8 @@
         <h2>Painel de Monitoramento</h2>
         <p id="counter">Sincronização ativa (3s)</p>
       </div>
-      <div class="live-indicator">
-        <span class="dot"></span> LIVE
+      <div id="live-box" class="live-indicator">
+        <span class="dot"></span> <span id="live-text">LIVE</span>
       </div>
     </header>
 
@@ -25,11 +25,33 @@
   </main>
 
   <script>
+    const counterEl = document.getElementById('counter');
+    const liveBox = document.getElementById('live-box');
+    const liveText = document.getElementById('live-text');
+
+    // --- SISTEMA DE AVISO DE CONEXÃO ---
+    window.addEventListener('offline', () => {
+      counterEl.innerText = 'Conexão perdida. Verifique sua internet.';
+      counterEl.style.color = '#ef4444';
+      liveBox.style.background = 'rgba(239, 68, 68, 0.1)';
+      liveBox.style.color = '#ef4444';
+      liveText.innerText = 'OFFLINE';
+    });
+
+    window.addEventListener('online', () => {
+      counterEl.innerText = 'Sincronização restaurada.';
+      counterEl.style.color = ''; // Volta ao padrão do CSS
+      liveBox.style.background = ''; // Volta ao padrão do CSS
+      liveBox.style.color = '';
+      liveText.innerText = 'LIVE';
+      atualizar(); // Força uma atualização imediata ao voltar
+    });
+
     async function removerUsuario(email) {
       if (!confirm(`Encerrar monitoramento de ${email}?`)) return;
 
       try {
-        const res = await fetch('/api/location', { // Ajuste a URL se necessário
+        const res = await fetch('/api/location', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email })
@@ -38,8 +60,11 @@
         if (res.ok) {
           const idLimpo = email.replace(/[^a-z0-9]/gi, '');
           const card = document.getElementById(`card-${idLimpo}`);
-          if (card) card.style.opacity = '0'; // Feedback visual suave
-          setTimeout(() => card?.remove(), 300);
+          if (card) {
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.95)';
+            setTimeout(() => card.remove(), 300);
+          }
         }
       } catch (e) {
         alert("Erro ao conectar com o servidor.");
@@ -47,6 +72,9 @@
     }
 
     async function atualizar() {
+      // Se o navegador estiver offline, nem tenta buscar dados
+      if (!navigator.onLine) return;
+
       try {
         const res = await fetch('/api/location');
         const data = await res.json();
@@ -54,7 +82,7 @@
         
         const emailsServidor = Object.keys(data);
 
-        // Limpa cards que foram removidos no servidor por outros admins
+        // Limpa cards removidos
         document.querySelectorAll('.location-card').forEach(card => {
           if (!emailsServidor.includes(card.getAttribute('data-email'))) {
             card.remove();
@@ -66,7 +94,6 @@
           const idLimpo = email.replace(/[^a-z0-9]/gi, '');
           let card = document.getElementById(`card-${idLimpo}`);
 
-          // Se não existe o card, cria. Se existe, apenas atualiza o texto interno.
           if (!card) {
             card = document.createElement('div');
             card.id = `card-${idLimpo}`;
@@ -75,9 +102,8 @@
             grid.appendChild(card);
           }
 
-          // Atualiza apenas o conteúdo (evita o piscar)
           card.innerHTML = `
-            <button class="delete-btn" onclick="removerUsuario('${email}')">&times;</button>
+            <button class="delete-btn" onclick="removerUsuario('${email}')" title="Remover">×</button>
             <div class="card-header">
               <div class="user-avatar">${email.charAt(0).toUpperCase()}</div>
               <div class="user-info">
